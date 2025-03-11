@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Rain Simulator</title>
+  <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #6aca92;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+
+        }
+        .play-button {
+            background-color: #ff00ea;
+            color: white;
+        }
+        .settings-button {
+            background-color: orange;
+            color: white;
+        }
+        .follow-button {
+            background-color: red;
+            color: white;
+        }
+        .check-button {
+            background-color: purple;
+            color: white;
+        }
+        .assistant-button {
+            background-color: green;
+            color: white;
+            position: fixed;
+            bottom: 10px;
+            right: 80px;
+            border: none;
+
+            padding: 10px;
+            font-size: 20px;
+            z-index: 20;
+        }
+        .changelog-button {
+            background-color: green;
+            color: white;
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            border: none;
+
+            padding: 10px;
+            font-size: 20px;
+            z-index: 20;
+        }
+        #matrix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            display: none;
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+
+            z-index: 10;
+        }
+        .controls label {
+            color: white;
+            margin-right: 5px;
+        }
+        .controls input {
+            margin-right: 10px;
+            border: none;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .controls button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            background-color: red;
+            color: white;
+            cursor: pointer;
+        }
+        .message {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            color: red;
+            display: none;
+            z-index: 20;
+        }
+        #closeButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+
+            padding: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 20;
+            display: none; /* Initially hidden */
+        }
+        #settings {
+            display: none; /* Initially hidden */
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 15;
+        }
+        #settings button {
+            background-color: #00cc00;
+            margin-top: 10px;
+        }
+        .button-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        #infoButton {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+
+            padding: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 20;
+        }
+        #infoBox {
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 21;
+            max-width: 80%;
+        }
+        #helpBox {
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 22;
+            max-width: 80%;
+        }
+        .tornado-button {
+            background-color: green;
+            display: flex;
+            align-items: center;
+        }
+        .tornado-button img {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+        #preview {
+            margin-top: 20px;
+            border: 1px solid #00ff00;
+            width: 300px;
+            height: 200px;
+            background: black;
+            overflow: hidden;
+        }
+        #previewCanvas {
+            width: 100%;
+            height: 100%;
+        }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <img id="logo" src="https://i.imgur.com/rGExLUK.png" alt="Logo">
+    <div class="button-row">
+      <button class="play-button" onclick="startGame()">⬛ Single Player</button> <button class="settings-button" onclick="showSettings()">Settings</button>
+    </div><button class="check-button" onclick="window.open('https://poe.com/mrsofficial', '_blank')">Official Poe Account</button> <button class="follow-button" onclick="window.open('https://community.fandom.com/wiki/User:CuddlesxGigglesflakytheporcupine133222', '_blank')">Follow me on Fandom</button>
+  </div>
+  <div id="matrix">
+    <canvas id="myCanvas"></canvas>
+    <div class="controls">
+      <label for="speedSlider">Speed:</label> <input type="range" id="speedSlider" min="10" max="100" value="33" oninput="changeSpeed()"> <label for="colorSlider">Color:</label> <input type="color" id="colorSlider" value="#0F0" oninput="changeColor()"> <button id="startButton" style="background-color: green;">Start Rain</button> <button id="stopButton">Stop Rain</button> <button id="tornadoButton" class="tornado-button" onclick="toggleTornado()"><img src="https://www.gstatic.com/android/keyboard/emojikitchen/20240206/u1f32a-ufe0f/u1f32a-ufe0f_u1f4bb.png?fbx" alt="Tornado Icon">Tornado Mode</button>
+    </div>
+    <div class="message" id="message">
+      You are doing this action already.
+    </div><button id="closeButton" onclick="goHome()">✖</button>
+  </div>
+  <div id="settings">
+
+    <h2>Settings</h2>
+    <p>Adjust your settings here.</p>
+    <div>
+      <label for="messageToggle">Enable "You are doing this action already." message:</label> <input type="checkbox" id="messageToggle" checked onchange="toggleMessage()">
+    </div>
+    <div>
+      <label for="bgColor">Background Color:</label> <input type="color" id="bgColor" value="#6aca92" onchange="changeBackgroundColor()">
+    </div>
+    <div>
+      <label for="densitySlider">Rain Density:</label> <input type="range" id="densitySlider" min="1" max="100" value="50" oninput="changeDensity()">
+    </div>
+    <div>
+      <label for="defaultColor">Default Matrix Color:</label> <input type="color" id="defaultColor" value="#00ff00" onchange="changeDefaultColor()">
+    </div><button id="testButton" onclick="testPreview()">Test</button>
+    <div id="preview">
+      <canvas id="previewCanvas"></canvas>
+    </div><button onclick="resetSettings()">Reset to Default</button> <button onclick="goHomeFromSettings()">Back</button>
+  </div><button id="infoButton" onclick="showInfo()">Info</button> <button class="assistant-button" onclick="window.open('https://poe.com/MRS-Helper', '_blank')">Assistant</button> <button class="changelog-button" onclick="window.open('https://sites.google.com/view/matrixrainsimluatorgame/Changelog', '_blank')">Changelog</button>
+  <div id="infoBox">
+    <h2>About Matrix Rain Simulator</h2>
+    <p>This simulator recreates the iconic "digital rain" effect, just like matrix rain from movies or comics or everything. It generates random characters that cascade down the screen, creating a visually captivating experience.</p>
+    <p><strong>Test your matrix rain in your style!</strong></p>
+    <div>
+      <button onclick="showHelp()">Help</button> <button onclick="hideInfo()">Close</button>
+    </div>
+  </div>
+  <div id="helpBox">
+    <h2>Help</h2>
+    <h3>How to Play</h3>
+    <p>Click the "Play" button to start the matrix rain effect. You can adjust the speed and color of the rain using the controls.</p>
+    <h3>How to Change Settings</h3>
+    <p>Click the "Settings" button to access various options, such as enabling/disabling messages and changing the background color.</p><button onclick="hideHelp()">Close Help</button>
+  </div>
+  <script>
+        let intervalId;
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        const previewCanvas = document.getElementById("previewCanvas");
+        const previewCtx = previewCanvas.getContext("2d");
+        let columns, drops, speed = 33, color = "#0F0", density = 50, defaultColor = "#00ff00";
+        let tornadoActive = false;
+        let showMessageFlag = true;
+
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('matrix').style.display = 'block';
+            document.getElementById('infoButton').style.display = 'none';
+            document.querySelector('.assistant-button').style.display = 'none'; // Hide assistant button
+            document.querySelector('.changelog-button').style.display = 'none'; // Hide changelog button
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / 20) + 1;
+            drops = Array(columns).fill(1);
+            document.getElementById("closeButton").style.display = "block";
+            color = defaultColor;
+        }
+
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = color;
+            ctx.font = "20px monospace";
+            
+            drops.forEach((drop, i) => {
+                let text = String.fromCharCode(Math.floor(Math.random() * 128));
+                ctx.fillText(text, i * 20, drop * 20);
+                if (drop * 20 >= canvas.height && Math.random() >= 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            });
+        }
+
+        function drawPreview() {
+            previewCtx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.fillStyle = color;
+            previewCtx.font = "20px monospace";
+            
+            for (let i = 0; i < density; i++) {
+                let x = Math.floor(Math.random() * (previewCanvas.width / 20)) * 20;
+                let drop = Math.floor(Math.random() * (previewCanvas.height / 20)) * 20;
+                let text = String.fromCharCode(Math.floor(Math.random() * 128));
+                previewCtx.fillText(text, x, drop);
+            }
+        }
+
+        function startRain() {
+            if (intervalId) {
+                if (showMessageFlag) showMessage();
+                return;
+            }
+            intervalId = setInterval(draw, speed);
+            document.getElementById("startButton").style.backgroundColor = "red";
+            document.getElementById("stopButton").style.backgroundColor = "green";
+        }
+
+        function stopRain() {
+            if (!intervalId) {
+                if (showMessageFlag) showMessage();
+                return;
+            }
+            clearInterval(intervalId);
+            intervalId = null;
+            document.getElementById("startButton").style.backgroundColor = "green";
+            document.getElementById("stopButton").style.backgroundColor = "red";
+        }
+
+        function toggleTornado() {
+            tornadoActive = !tornadoActive;
+            if (tornadoActive) {
+                speed = 10;
+                startRain();
+                document.getElementById("tornadoButton").style.backgroundColor = "darkgreen";
+            } else {
+                speed = 33;
+                stopRain();
+                document.getElementById("tornadoButton").style.backgroundColor = "green";
+            }
+        }
+
+        function showMessage() {
+            const message = document.getElementById("message");
+            message.style.display = "block";
+            setTimeout(() => {
+                message.style.display = "none";
+            }, 2000);
+        }
+
+        function changeSpeed() {
+            speed = 100 - parseInt(document.getElementById("speedSlider").value);
+        }
+
+        function changeColor() {
+            color = document.getElementById("colorSlider").value;
+            drawPreview();
+        }
+
+        function changeDensity() {
+            density = parseInt(document.getElementById("densitySlider").value);
+            drawPreview();
+        }
+
+        function changeDefaultColor() {
+            defaultColor = document.getElementById("defaultColor").value;
+        }
+
+        function changeBackgroundColor() {
+            const bgColor = document.getElementById("bgColor").value;
+            document.body.style.backgroundColor = bgColor;
+        }
+
+        function goHome() {
+            document.getElementById('matrix').style.display = 'none';
+            document.getElementById('menu').style.display = 'flex';
+            document.getElementById("closeButton").style.display = "none";
+            document.getElementById('infoButton').style.display = 'block';
+            document.querySelector('.assistant-button').style.display = 'block'; // Show assistant button
+            document.querySelector('.changelog-button').style.display = 'block'; // Show changelog button
+            stopRain();
+            color = defaultColor;
+        }
+
+        function showSettings() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('settings').style.display = 'block';
+            document.getElementById('infoButton').style.display = 'none';
+            document.querySelector('.assistant-button').style.display = 'none';
+            document.querySelector('.changelog-button').style.display = 'none';
+            previewCanvas.width = 300;
+            previewCanvas.height = 200;
+            drawPreview();
+        }
+
+        function goHomeFromSettings() {
+            document.getElementById('settings').style.display = 'none';
+            document.getElementById('menu').style.display = 'flex';
+            document.getElementById('infoButton').style.display = 'block';
+            document.querySelector('.assistant-button').style.display = 'block';
+            document.querySelector('.changelog-button').style.display = 'block';
+        }
+
+        function toggleMessage() {
+            const toggle = document.getElementById("messageToggle");
+            showMessageFlag = toggle.checked;
+        }
+
+        function resetSettings() {
+            document.getElementById("messageToggle").checked = true;
+            document.getElementById("bgColor").value = "#6aca92";
+            document.getElementById("densitySlider").value = 50;
+            document.getElementById("defaultColor").value = "#00ff00";
+            changeBackgroundColor();
+            changeDensity();
+            changeDefaultColor();
+        }
+
+        function testPreview() {
+            color = document.getElementById("defaultColor").value;
+            drawPreview();
+            setInterval(drawPreview, 100);
+        }
+
+        function showInfo() {
+            document.getElementById('infoBox').style.display = 'block';
+        }
+
+        function hideInfo() {
+            document.getElementById('infoBox').style.display = 'none';
+        }
+
+        function showHelp() {
+            document.getElementById('helpBox').style.display = 'block';
+            hideInfo();
+        }
+
+        function hideHelp() {
+            document.getElementById('helpBox').style.display = 'none';
+        }
+
+        document.getElementById("startButton").addEventListener("click", startRain);
+        document.getElementById("stopButton").addEventListener("click", stopRain);
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / 20) + 1; 
+            drops = Array(columns).fill(1); 
+            previewCanvas.width = 300;
+            previewCanvas.height = 200;
+            drawPreview();
+        });
+  </script>
+</body>
+</html>
